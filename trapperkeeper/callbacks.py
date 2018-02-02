@@ -164,3 +164,54 @@ class TrapperCallback(object):
             logging.debug(err)
 
         self._send_mail(handler, trap, duplicate)
+
+        # TODO: index_to_elastic_search
+        self._index_to_elasticsearch(trap)
+
+    def _index_to_elasticsearch(self, trap):
+        subject = {
+            "trap_oid": trap.oid,
+            "trap_name": ObjectId(trap.oid).name,
+            "ipaddress": trap.host,
+            "hostname": self.resolver.hostname_or_ip(trap.host),
+        }
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        print("="*150)
+        pp.pprint(trap.to_dict())
+        print("vb"*25)
+        for vb in trap.varbinds:
+            pp.pprint(vb.to_dict(pretty=True))
+
+        trap_index = dict()
+        trap_index.update(trap.to_dict())
+
+        for vb in trap.varbinds:
+            trap_index.update(transform_varbind(vb))
+       
+        trap_index["notification_id"] = trap_index["id"]
+        del trap_index["id"]
+        print("-"*25)
+        pp.pprint(trap_index)
+
+        #pp.pprint(trap.varbinds)
+        #check utils.to_mibname
+        #trap.varbinds[0].pretty_value....
+        #trap.varbinds[1].pretty_value....
+
+
+def transform_varbind(varbind):
+    d = varbind.to_dict(pretty=True)
+    # {'name': 'SNMPv2-MIB::sysLocation.0',
+    #  'notification_id': 40,
+    #  'oid': u'1.3.6.1.2.1.1.6.0',
+    #  'pretty_value': 'TrapperKeeper-Test',
+    #  'value': 'TrapperKeeper-Test',
+    #  'value_type': u'octet'}
+    result = dict()
+    result.update({
+        d['name']: d['pretty_value'],
+        d['oid']: d['value'],
+        "%s:type" % (d['name']): d['value_type']
+    })
+    return result
