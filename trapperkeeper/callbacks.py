@@ -188,11 +188,13 @@ class TrapperCallback(object):
 
         for vb in trap.varbinds:
             trap_index.update(transform_varbind(vb))
-       
+
         trap_index["notification_id"] = trap_index["id"]
+        trap_index["mib_name"] = ObjectId(trap.oid).name
         del trap_index["id"]
         print("-"*25)
         pp.pprint(trap_index)
+        trap.pprint()
 
         #pp.pprint(trap.varbinds)
         #check utils.to_mibname
