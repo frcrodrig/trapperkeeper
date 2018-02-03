@@ -76,6 +76,24 @@ class Notification(Model):
         for varbind in self.varbinds:
             varbind.pprint()
 
+    # for ElasticSearch index
+    @property
+    def es_doc(self):
+        doc = {
+            "notification_id": self.id,
+            "host": self.host,
+            "oid": self.oid,
+            "mib_name": ObjectId(self.oid).name,
+            "severity": self.severity,
+            "@timestamp": utcnow()
+        }
+
+        for varbind in self.varbinds:
+            doc.update(varbind.es_doc)
+
+        return doc
+
+
     @staticmethod
     def _from_pdu_v1(host, proto_module, version, pdu):
         trapoid = str(proto_module.apiTrapPDU.getEnterprise(pdu))
@@ -176,6 +194,17 @@ class VarBind(Model):
 
     def pprint(self):
         print "\t", self.oid, "(%s)" % self.value_type, "=", self.value
+
+    @property
+    def es_doc(self):
+        d = self.to_dict(pretty=True)
+        doc = dict()
+        doc.update({
+            d['name']: d['pretty_value'],
+            d['oid']: d['value'],
+            "%s:type" % (d['name']): d['value_type']
+        })
+        return doc
 
     def __repr__(self):
         return "Varbind(oid=%s, value_type=%s, value=%s)" % (
