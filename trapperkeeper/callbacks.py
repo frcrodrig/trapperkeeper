@@ -169,6 +169,7 @@ class TrapperCallback(object):
         self._index_to_elasticsearch(trap)
 
     def _index_to_elasticsearch(self, trap):
-        index_trap_to_elasticsearch(trap.es_doc)
+        info = index_trap_to_elasticsearch(trap.es_doc)
+        logging.info("ES index created %s" % info)
 
 
