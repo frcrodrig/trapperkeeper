@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError, OperationalError
 from trapperkeeper.dde import DdeNotification
 from trapperkeeper.constants import SNMP_VERSIONS
 from trapperkeeper.models import Notification
-from trapperkeeper.utils import parse_time_string, send_trap_email
+from trapperkeeper.utils import parse_time_string, send_trap_email, index_trap_to_elasticsearch
 
 
 try:
@@ -195,6 +195,7 @@ class TrapperCallback(object):
         print("-"*25)
         pp.pprint(trap_index)
         trap.pprint()
+        index_trap_to_elasticsearch(trap_index)
 
         #pp.pprint(trap.varbinds)
         #check utils.to_mibname

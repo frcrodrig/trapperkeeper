@@ -128,6 +128,14 @@ def send_trap_email(recipients, sender, subject, template_env, context):
     smtp.quit()
 
 
+from elasticsearch import Elasticsearch
+ES = Elasticsearch("http://localhost:9200")
+#ES.indices.create(index='my-trap', ignore=400)
+
+def index_trap_to_elasticsearch(trap_index):
+    ES.index(index="my-trap", doc_type="trap", body=trap_index)
+
+
 def get_loglevel(args):
     verbose = args.verbose * 10
     quiet = args.quiet * 10
