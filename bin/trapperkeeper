@@ -15,7 +15,7 @@ from trapperkeeper.config import Config
 from trapperkeeper.models import get_db_engine, Session
 from trapperkeeper.utils import get_template_env, get_loglevel, CachingResolver
 from trapperkeeper import __version__
-
+from trapperkeeper.es_client import get_elasticsearch_client
 
 def stats_server(port):
     class Stats(tornado.web.RequestHandler):
@@ -49,6 +49,11 @@ def main():
     config = Config.from_file(args.config)
 
     db_engine = get_db_engine(config["database"])
+    es_host = config.get("elasticsearch_host")
+    if es_host:
+        es_client = get_elasticsearch_client(es_host)
+    else:
+        es_client = None
     community = config["community"]
     if not community:
         community = None
@@ -62,7 +67,7 @@ def main():
     template_env = get_template_env(
         hostname_or_ip=resolver.hostname_or_ip
     )
-    cb = TrapperCallback(conn, template_env, config, resolver, community)
+    cb = TrapperCallback(conn, template_env, config, resolver, community, es_client)
 
     logging.basicConfig(
         level=get_loglevel(args),

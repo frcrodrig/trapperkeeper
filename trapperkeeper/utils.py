@@ -12,8 +12,7 @@ import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from elasticsearch import Elasticsearch
-ES = Elasticsearch("http://localhost:9200")
+
 
 
 _TIME_STRING_RE = re.compile(
@@ -130,9 +129,6 @@ def send_trap_email(recipients, sender, subject, template_env, context):
     smtp.sendmail(sender, recipients, msg.as_string())
     smtp.quit()
 
-
-def index_trap_to_elasticsearch(trap_index):
-    return ES.index(index="trap", doc_type="trap", body=trap_index)
 
 
 def get_loglevel(args):

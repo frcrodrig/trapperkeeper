@@ -14,7 +14,8 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError, OperationalError
 from trapperkeeper.dde import DdeNotification
 from trapperkeeper.constants import SNMP_VERSIONS
 from trapperkeeper.models import Notification
-from trapperkeeper.utils import parse_time_string, send_trap_email, index_trap_to_elasticsearch
+from trapperkeeper.utils import parse_time_string, send_trap_email
+from trapperkeeper.es_client import index_trap_to_elasticsearch
 
 
 try:
@@ -26,13 +27,14 @@ except ImportError as err:
 
 
 class TrapperCallback(object):
-    def __init__(self, conn, template_env, config, resolver, community):
+    def __init__(self, conn, template_env, config, resolver, community, es_client):
         self.conn = conn
         self.template_env = template_env
         self.config = config
         self.hostname = socket.gethostname()
         self.resolver = resolver
         self.community = community
+        self.es_client = es_client
 
     def __call__(self, *args, **kwargs):
         try:
@@ -165,11 +167,8 @@ class TrapperCallback(object):
 
         self._send_mail(handler, trap, duplicate)
 
-        # TODO: index_to_elastic_search
-        self._index_to_elasticsearch(trap)
+        if self.es_client is not None:
+            index_trap_to_elasticsearch(self.es_client, self.config.get("elasticsearch_index"), trap.es_doc)
 
-    def _index_to_elasticsearch(self, trap):
-        info = index_trap_to_elasticsearch(trap.es_doc)
-        logging.info("ES index created %s" % info)
 
 

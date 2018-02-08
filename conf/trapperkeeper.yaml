@@ -121,3 +121,15 @@ config:
     #
     # Type: bool
     ipv6: false
+
+    # Elastic Search Host
+    #
+    # Type: string
+    elasticsearch_host: "http://localhost:9200"
+
+    # Elastic Search Index
+    # Since starting from ES ver 6.0, there is no type,
+    # index name will be used as type name for ES ver < 6.0
+    #
+    # Type: string
+    elasticsearch_index: "trap"
